@@ -1,0 +1,17 @@
+opam-version: "2.0"
+name: "price_proxy"
+version: "0.1"
+synopsis: "Caches and serves values from web pages for use with google sheets"
+maintainer: "Sean Purcell <me@seanp.xyz>"
+authors: "Sean Purcell <me@seanp.xyz>"
+license: "MIT"
+homepage: "https://github.com/iburinoc/price_proxy"
+depends: [
+    "async"
+    "async_ssl"
+    "cohttp"
+    "cohttp-async"
+    "core"
+    "ppx_jane"
+    ]
+build: ["dune" "build" "-p" name "-j" jobs]

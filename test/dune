@@ -1,0 +1,5 @@
+(test
+ (name price_proxy)
+ (libraries core async)
+ (preprocess
+  (pps ppx_jane)))
