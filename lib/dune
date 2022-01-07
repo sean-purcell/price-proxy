@@ -2,4 +2,4 @@
  (name price_proxy)
  (libraries async core cohttp cohttp-async lambdasoup uri)
  (preprocess
-  (pps ppx_jane ppx_log)))
+  (pps ppx_jane)))

@@ -15,7 +15,6 @@ depends: [
     "core"
     "lambdasoup"
     "ppx_jane"
-    "ppx_log"
     "uri"
     ]
 build: ["dune" "build" "-p" name "-j" jobs]

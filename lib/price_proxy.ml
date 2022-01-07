@@ -61,7 +61,8 @@ module Config = struct
     let open Deferred.Or_error.Let_syntax in
     Log.Global.info_s [%message "Sending query" ~_:(t : t)];
     let%bind response, body =
-      Deferred.Or_error.try_with (fun () -> Client.get (Uri.of_string t.url))
+      Deferred.Or_error.try_with (fun () ->
+          follow_redirects (Uri.of_string t.url) Client.get)
     in
     let%bind.Deferred body = Body.to_string body in
     let code = Response.status response |> Code.code_of_status in
@@ -77,7 +78,7 @@ module Config = struct
   ;;
 end
 
-let command =
+let server_command =
   Command.async
     ~summary:"Fetch and cache prices"
     (let%map_open.Command configs =
@@ -100,4 +101,22 @@ let command =
              (port : int)
              (query_interval : Time_ns.Span.t)];
        return ())
+;;
+
+let query_command =
+  Command.async_or_error
+    ~summary:"Query a value from a config"
+    (let%map_open.Command config = anon ("CONFIG" %: sexp) >>| [%of_sexp: Config.t] in
+     fun () ->
+       let open Deferred.Or_error.Let_syntax in
+       let%bind value = Config.query_value config in
+       print_endline value;
+       return ())
+;;
+
+let command =
+  Command.group
+    ~summary:
+      "Tools for querying and serving values from web pages as a table for google sheets"
+    [ "server", server_command; "query", query_command ]
 ;;
