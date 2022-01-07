@@ -6,12 +6,16 @@ maintainer: "Sean Purcell <me@seanp.xyz>"
 authors: "Sean Purcell <me@seanp.xyz>"
 license: "MIT"
 homepage: "https://github.com/iburinoc/price_proxy"
+bug-reports: "Sean Purcell <me@seanp.xyz>"
 depends: [
-    "async"
+    "async" {>= "0.15.0"}
     "async_ssl"
     "cohttp"
     "cohttp-async"
     "core"
+    "lambdasoup"
     "ppx_jane"
+    "ppx_log"
+    "uri"
     ]
 build: ["dune" "build" "-p" name "-j" jobs]
