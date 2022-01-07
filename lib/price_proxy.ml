@@ -78,6 +78,44 @@ module Config = struct
   ;;
 end
 
+module State = struct
+  type t = (Config.t * string) list
+
+  let sexp_of_t (t : t) =
+    List.map t ~f:(fun (config, value) -> config.name, value)
+    |> [%sexp_of: (string * string) list]
+  ;;
+
+  let load configs =
+    Log.Global.info_s [%message "Loading values" (configs : Config.t list)];
+    Deferred.List.map configs ~f:(fun config ->
+        match%map Config.query_value config with
+        | Ok value -> Some value
+        | Error err ->
+          Log.Global.error_s
+            [%message "Failed to load value" (err : Error.t) (config : Config.t)];
+          None)
+  ;;
+
+  let load_initial configs =
+    load configs
+    >>| List.map ~f:(function
+            | Some v -> v
+            | None -> "#ERROR")
+    >>| List.zip_exn configs
+  ;;
+
+  let reload t =
+    load (List.map t ~f:fst)
+    >>| List.zip_exn t
+    >>| List.map ~f:(fun ((config, prev), new_value) ->
+            ( config
+            , match new_value with
+              | Some value -> value
+              | None -> prev ))
+  ;;
+end
+
 let server_command =
   Command.async
     ~summary:"Fetch and cache prices"
@@ -100,7 +138,14 @@ let server_command =
              (configs : Config.t list)
              (port : int)
              (query_interval : Time_ns.Span.t)];
-       return ())
+       let%bind state = State.load_initial configs in
+       Log.Global.info_s [%message "Initial state" (state : State.t)];
+       let state = ref state in
+       Clock_ns.run_at_intervals' query_interval (fun () ->
+           let%map new_state = State.reload !state in
+           Log.Global.info_s [%message "Reloaded state" (new_state : State.t)];
+           state := new_state);
+       Deferred.never ())
 ;;
 
 let query_command =
