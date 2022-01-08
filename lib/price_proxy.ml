@@ -114,6 +114,33 @@ module State = struct
               | Some value -> value
               | None -> prev ))
   ;;
+
+  let to_html (t : t) =
+    let open Tyxml in
+    let open Html in
+    let rows =
+      List.map t ~f:(fun (config, value) ->
+          tr [ td [ txt config.name ]; td [ txt value ] ])
+    in
+    let page =
+      [%html
+        {|<html>
+             <head>
+              <title>Price proxy
+      </title>
+             </head>
+             <body>
+      <table>
+      |}
+          [ tbody rows ]
+          {|
+      </table>
+      </body>
+             </html>
+         |}]
+    in
+    Format.asprintf "%a" (Tyxml.Html.pp ~indent:true ()) page
+  ;;
 end
 
 let server_command =
@@ -145,6 +172,28 @@ let server_command =
            let%map new_state = State.reload !state in
            Log.Global.info_s [%message "Reloaded state" (new_state : State.t)];
            state := new_state);
+       let%bind server =
+         Server.create
+           ~on_handler_error:`Raise
+           (Tcp.Where_to_listen.of_port port)
+           (fun ~body:_ address request ->
+             Log.Global.info_s
+               [%message
+                 "Received request"
+                   (address : Socket.Address.Inet.t)
+                   (request : Request.t)];
+             if [%equal: string] request.resource "/"
+             then (
+               let body = State.to_html !state |> Body.of_string in
+               let response = Response.make ~status:`OK () in
+               return (response, body))
+             else (
+               let body = Body.of_string "Not found" in
+               let response = Response.make ~status:`Not_found () in
+               return (response, body)))
+       in
+       let listening_on_port = Server.listening_on server in
+       Log.Global.info_s [%message "HTTP server listening" (listening_on_port : int)];
        Deferred.never ())
 ;;
 
