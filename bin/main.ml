@@ -1,4 +1,4 @@
 open! Core
 open! Async
 
-let () = Command.run Price_proxy.command
+let () = Command_unix.run Price_proxy.command

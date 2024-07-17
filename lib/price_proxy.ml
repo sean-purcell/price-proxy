@@ -88,7 +88,7 @@ module State = struct
 
   let load configs =
     Log.Global.info_s [%message "Loading values" (configs : Config.t list)];
-    Deferred.List.map configs ~f:(fun config ->
+    Deferred.List.map ~how:`Sequential configs ~f:(fun config ->
         match%map Config.query_value config with
         | Ok value -> Some value
         | Error err ->
