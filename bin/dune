@@ -1,6 +1,6 @@
 (executable
  (public_name price_proxy)
  (name main)
- (libraries price_proxy core async)
+ (libraries price_proxy core core_unix.command_unix async)
  (preprocess
   (pps ppx_jane)))

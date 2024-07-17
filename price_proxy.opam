@@ -8,11 +8,12 @@ license: "MIT"
 homepage: "https://github.com/iburinoc/price_proxy"
 bug-reports: "Sean Purcell <me@seanp.xyz>"
 depends: [
-    "async" {>= "0.15.0"}
+    "async" {>= "0.17.0"}
     "async_ssl"
     "cohttp"
     "cohttp-async"
     "core"
+    "core_unix"
     "lambdasoup"
     "ppx_jane"
     "tyxml"
